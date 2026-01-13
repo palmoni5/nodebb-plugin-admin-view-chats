@@ -1,7 +1,7 @@
 {
   "name": "nodebb-plugin-super-admin-chats",
   "version": "1.0.0",
-  "description": "Combined plugin: Admin link to user chats + God Mode (Ghost, History, Full Control).",
+  "description": "A plugin that allows the administrator to view and manage user chats.",
   "main": "library.js",
   "dependencies": {
     "lodash": "^4.17.0"
