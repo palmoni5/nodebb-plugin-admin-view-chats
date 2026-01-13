@@ -32,7 +32,8 @@ $(document).ready(function() {
                 const btnHtml = `
                     <li role="presentation">
                         <a class="dropdown-item rounded-1 d-flex align-items-center gap-2" href="/user/${userSlug}/chats" role="menuitem">
-                            <i class="fa fa-fw fa-comments text-danger"></i> <span>${buttonText}</span>
+                            <i class="far fa-fw fa-comments"></i> 
+                            <span>${buttonText}</span>
                         </a>
                     </li>
                     <li role="presentation" class="dropdown-divider"></li>
