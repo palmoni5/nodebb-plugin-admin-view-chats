@@ -38,3 +38,15 @@ The plugin overrides core messaging functions to ensure full administrative cont
 1. Install the plugin via terminal:
    ```bash
    npm install nodebb-plugin-admin-chats
+   ```
+2. Activate the plugin in the NodeBB Admin Control Panel (ACP).
+3. Restart NodeBB.
+
+## Client-Side Support
+The plugin includes a `client.js` script that:
+* Detects the system language (English or Hebrew).
+* Dynamically injects action buttons into the account sub-links menu.
+* Cleans up the chat UI empty states for a better admin experience.
+
+---
+*Developed by [palmoni5](https://github.com/palmoni5/nodebb-plugin-admin-chats).*
