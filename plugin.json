@@ -1,10 +1,12 @@
 {
     "id": "nodebb-plugin-admin-view-chats",
     "name": "Admin View User Chats",
-    "description": "Injects admin button via client-side script",
+    "description": "View user chats as admin",
     "library": "./library.js",
     "scripts": [ "client.js" ],
     "hooks": [
-        { "hook": "static:app.load", "method": "init" }
+        { "hook": "filter:user.accountMenu", "method": "addProfileLink" },
+        { "hook": "static:app.load", "method": "init" },
+        { "hook": "filter:messaging.canGetRecentChats", "method": "allowAdminAccess" }
     ]
 }

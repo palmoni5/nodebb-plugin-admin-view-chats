@@ -3,13 +3,27 @@ const User = require.main.require('./src/user');
 const Messaging = require.main.require('./src/messaging');
 const plugin = {};
 
+// --- Hook חדש: עקיפת בדיקת ההרשאות של NodeBB ---
+plugin.allowAdminAccess = async function (data) {
+    // data.callerUid הוא המזהה של מי שמבקש את המידע (אתה)
+    const isAdmin = await User.isAdministrator(data.callerUid);
+    
+    if (isAdmin) {
+        // אם המבקש הוא אדמין, אנחנו משנים את ההרשאה ל-TRUE
+        data.canGet = true;
+    }
+    
+    return data;
+};
+// ------------------------------------------------
+
 plugin.init = async function (params) {
     const router = params.router;
     const middleware = params.middleware;
 
     router.get('/user-chats-viewer/:targetUid', middleware.ensureLoggedIn, async (req, res) => {
         try {
-            // 1. בדיקת מנהל
+            // בדיקת אבטחה כפולה (לוודא שרק אדמין ניגש ל-API הזה)
             const isAdmin = await User.isAdministrator(req.uid);
             if (!isAdmin) {
                 return res.status(403).send('Error: You are not authorized.');
@@ -21,13 +35,11 @@ plugin.init = async function (params) {
             const userData = await User.getUserFields(targetUid, ['username']);
             const username = userData.username || 'User ' + targetUid;
 
-            // 2. קריאה לפונקציה
+            // כעת הקריאה הזו תעבוד כי ה-Hook למעלה יאשר אותה
             const result = await Messaging.getRecentChats(callerUid, targetUid, 0, 49);
             
-            // 3. חילוץ הנתונים הנכונים (התיקון לשגיאה)
-            // הפונקציה מחזירה אובייקט { rooms: [...] }, אז ניקח את ה-rooms משם.
-            // החדרים האלו כבר מלאים בנתונים, לא צריך getRoomsData נוסף.
-            const roomsData = result.rooms || []; 
+            // חילוץ הנתונים (תלוי בגרסת הליבה, לפעמים זה באובייקט rooms ולפעמים ישירות)
+            const roomsData = result.rooms || result || []; 
             
             let html = `
             <!DOCTYPE html>
@@ -43,12 +55,12 @@ plugin.init = async function (params) {
                     .chat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #cbd3da; }
                     .msg-preview { background: #f1f3f5; padding: 12px; border-radius: 6px; margin: 10px 0; font-size: 0.95rem; color: #495057; white-space: pre-wrap; }
                     .meta-info { font-size: 0.85rem; color: #adb5bd; }
-                    .header-box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+                    .badge-group { background-color: #17a2b8; color: white; font-size: 0.7em; padding: 2px 5px; border-radius: 4px; margin-right: 5px; }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <div class="header-box d-flex justify-content-between align-items-center border">
+                    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm border">
                         <div>
                             <h4 class="mb-0 text-primary">צ'אטים של <strong>${username}</strong></h4>
                             <small class="text-muted">UID: ${targetUid} | ${roomsData.length} שיחות</small>
@@ -58,20 +70,17 @@ plugin.init = async function (params) {
             `;
             
             if (!roomsData || roomsData.length === 0) {
-                html += '<div class="alert alert-warning text-center">לא נמצאו שיחות למשתמש זה (או שאין לך הרשאה לצפות בהן).</div>';
+                html += '<div class="alert alert-warning text-center">לא נמצאו שיחות.</div>';
             } else {
                 html += '<div class="row">';
                 roomsData.forEach(room => {
                     let content = '<i>(אין תוכן זמין)</i>';
-                    
-                    // ניסיון לחלץ תוכן בטוח
                     if (room.teaser) {
                         content = room.teaser.content 
                             ? room.teaser.content.replace(/</g, "&lt;").replace(/>/g, "&gt;") 
                             : '<i>(תמונה או קובץ)</i>';
                     }
                     
-                    // המרה לתאריך קריא
                     let dateStr = '';
                     if (room.teaser && room.teaser.timestamp) {
                         dateStr = new Date(room.teaser.timestamp).toLocaleString('he-IL');
@@ -83,7 +92,7 @@ plugin.init = async function (params) {
                             <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                                 <div>
                                     <strong>חדר #${room.roomId}</strong>
-                                    ${room.groupChat ? '<span class="badge bg-info me-2">קבוצתי</span>' : ''}
+                                    ${room.groupChat ? '<span class="badge-group">קבוצתי</span>' : ''}
                                 </div>
                                 <span class="meta-info">${dateStr}</span>
                             </div>
@@ -106,6 +115,27 @@ plugin.init = async function (params) {
             res.status(500).send("System Error: " + err.message);
         }
     });
+};
+
+plugin.addProfileLink = async function (data) {
+    // השארנו את הקוד הזה כפי שהיה
+    try {
+        let targetUid;
+        if (data.uid) targetUid = data.uid;
+        else if (data.user && data.user.uid) targetUid = data.user.uid;
+        
+        if (!targetUid) return data;
+
+        // הכפתור הזה משמש רק גיבוי, הסקריפט בצד לקוח הוא העיקרי
+        data.links.push({
+            id: 'admin-view-chats',
+            route: '/user-chats-viewer/' + targetUid,
+            icon: 'fa-comments',
+            name: 'View Chats (Admin)',
+            visibility: { other: true, admin: true }
+        });
+    } catch (e) { }
+    return data;
 };
 
 module.exports = plugin;
