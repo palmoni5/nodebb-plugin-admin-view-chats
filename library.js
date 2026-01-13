@@ -7,21 +7,11 @@ const _ = require('lodash');
 
 const plugin = {};
 
-/**
- * אתחול התוסף המאוחד
- */
 plugin.init = async function (params) {
-    console.log('[Super Admin Chats] Initializing...');
     
-    // הפעלת דריסות פונקציות (Monkey Patching) מהתוסף השני
     overrideMessagingFunctions();
-
-    console.log('[Super Admin Chats] Ready: Link logic + God Mode enabled.');
 };
 
-// ----------------------------------------------------------------------
-// חלק א': הוספת קישור לפרופיל (מהתוסף הראשון)
-// ----------------------------------------------------------------------
 
 plugin.addProfileLink = async function (data) {
     try {
@@ -48,11 +38,6 @@ plugin.addProfileLink = async function (data) {
     return data;
 };
 
-// ----------------------------------------------------------------------
-// חלק ב': HOOKS לניהול הרשאות (מהתוסף השני)
-// ----------------------------------------------------------------------
-
-// 1. בעלות על החדר
 plugin.isRoomOwner = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.uid);
     if (isAdmin) {
@@ -61,7 +46,6 @@ plugin.isRoomOwner = async function (payload) {
     return payload;
 };
 
-// 2. כניסה לחדר
 plugin.isUserInRoom = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.uid);
     if (isAdmin) {
@@ -70,7 +54,6 @@ plugin.isUserInRoom = async function (payload) {
     return payload;
 };
 
-// 3. אישור להגיב
 plugin.canReply = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.uid);
     if (isAdmin) {
@@ -79,7 +62,6 @@ plugin.canReply = async function (payload) {
     return payload;
 };
 
-// 4. אישור לשליפת הודעות
 plugin.canGetMessages = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.callerUid);
     if (isAdmin) {
@@ -88,7 +70,6 @@ plugin.canGetMessages = async function (payload) {
     return payload;
 };
 
-// 5. אישור לצפייה בצ'אטים אחרונים
 plugin.canGetRecentChats = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.callerUid);
     if (isAdmin) {
@@ -97,7 +78,6 @@ plugin.canGetRecentChats = async function (payload) {
     return payload;
 };
 
-// 6. אישור לצפייה בצ'אטים ציבוריים
 plugin.canGetPublicChats = async function (payload) {
     const isAdmin = await User.isAdministrator(payload.callerUid);
     if (isAdmin) {
@@ -106,34 +86,26 @@ plugin.canGetPublicChats = async function (payload) {
     return payload;
 };
 
-// 7. לוגיקת טעינת חדר (Ghost Mode והיסטוריה)
 plugin.onLoadRoom = async function (payload) {
     const { uid, room } = payload;
     const isAdmin = await User.isAdministrator(uid);
 
     if (!isAdmin || !room) return payload;
 
-    // בדיקה האם המנהל הוא חבר רשמי בחדר
     const isOfficialMember = await db.isSortedSetMember(`chat:room:${room.roomId}:uids`, uid);
 
-    // אם מנהל אך לא חבר רשמי - מצב רפאים והיסטוריה
     if (!isOfficialMember) {
-        // --- א. Ghost Mode ---
-        // הסרה מרשימת המחוברים בזמן אמת
         await db.sortedSetRemove(`chat:room:${room.roomId}:uids:online`, uid);
         
         if (Array.isArray(room.users)) {
-            // הסרת המנהל מהתצוגה בדפדפן
             room.users = room.users.filter(user => user && parseInt(user.uid, 10) !== parseInt(uid, 10));
         }
 
-        // תיקון מונים ויזואלי
         if (room.userCount > 0) {
             room.userCount -= 1;
         }
         room.groupChat = room.userCount > 2;
 
-        // --- ב. היסטוריה מלאה ---
         const allMids = await db.getSortedSetRevRange(`chat:room:${room.roomId}:mids`, 0, 49);
         
         if (allMids.length > 0) {
@@ -151,16 +123,11 @@ plugin.onLoadRoom = async function (payload) {
         room.isAdmin = true;
         room.isOwner = true;
     } else {
-        // מנהל שהוא חבר רשמי
         room.isAdmin = true;
     }
 
     return payload;
 };
-
-// ----------------------------------------------------------------------
-// חלק ג': RUNTIME OVERRIDES (מהתוסף השני)
-// ----------------------------------------------------------------------
 
 function overrideMessagingFunctions() {
     
@@ -168,7 +135,6 @@ function overrideMessagingFunctions() {
     const originalCanDelete = Messaging.canDelete;
     const originalCanViewMessage = Messaging.canViewMessage;
 
-    // 1. עריכה
     Messaging.canEdit = async function (messageId, uid) {
         if (await User.isAdministrator(uid)) {
             return true;
@@ -176,7 +142,6 @@ function overrideMessagingFunctions() {
         return await originalCanEdit(messageId, uid);
     };
 
-    // 2. מחיקה
     Messaging.canDelete = async function (messageId, uid) {
         if (await User.isAdministrator(uid)) {
             return true;
@@ -184,7 +149,6 @@ function overrideMessagingFunctions() {
         return await originalCanDelete(messageId, uid);
     };
 
-    // 3. צפייה בהודעה
     Messaging.canViewMessage = async function (mids, roomId, uid) {
         if (await User.isAdministrator(uid)) {
             return Array.isArray(mids) ? mids.map(() => true) : true;
