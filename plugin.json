@@ -1,0 +1,10 @@
+{
+    "id": "nodebb-plugin-admin-view-chats",
+    "name": "Admin View User Chats",
+    "description": "Injects admin button via client-side script",
+    "library": "./library.js",
+    "scripts": [ "client.js" ],
+    "hooks": [
+        { "hook": "static:app.load", "method": "init" }
+    ]
+}

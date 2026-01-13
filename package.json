@@ -1,0 +1,10 @@
+{
+  "name": "nodebb-plugin-admin-view-chats",
+  "version": "1.0.1",
+  "description": "Admin button to view user chats json",
+  "main": "library.js",
+  "keywords": ["nodebb", "plugin", "admin", "chats"],
+  "nbbpm": {
+    "compatibility": "^3.0.0 || ^4.0.0"
+  }
+}
