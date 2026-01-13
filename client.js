@@ -1,12 +1,22 @@
 $(document).ready(function() {
     
+    function isEnglishSystem() {
+        return $('html').attr('lang') && $('html').attr('lang').startsWith('en');
+    }
+
     function replaceAdminEmptyStateText() {
         if (!app.user.isAdmin) return;
 
         $('span.text-muted.text-sm').each(function() {
             const currentText = $(this).text().trim();
+            
             if (currentText.includes("אין לכם צ'אטים פעילים") || currentText === "אין לכם צ'אטים פעילים.") {
                 $(this).text("אנא בחר צ'אט מסרגל הצד.");
+                $(this).removeClass('text-muted');
+            }
+
+            if (currentText.includes("You have no active chats") || currentText === "You have no active chats.") {
+                $(this).text("Please select a chat from the sidebar.");
                 $(this).removeClass('text-muted');
             }
         });
@@ -17,10 +27,12 @@ $(document).ready(function() {
         if (app.user.isAdmin && (data.tpl_url === 'account/profile' || ajaxify.data.template.name === 'account/profile')) {
             const userSlug = ajaxify.data.userslug || (ajaxify.data.user && ajaxify.data.user.userslug);
             if (userSlug) {
+                const buttonText = isEnglishSystem() ? "View Chats" : "צפה בצ'אטים";
+
                 const btnHtml = `
                     <li role="presentation">
                         <a class="dropdown-item rounded-1 d-flex align-items-center gap-2" href="/user/${userSlug}/chats" role="menuitem">
-                            <i class="fa fa-fw fa-comments text-danger"></i> <span>צפה בצ'אטים</span>
+                            <i class="fa fa-fw fa-comments text-danger"></i> <span>${buttonText}</span>
                         </a>
                     </li>
                     <li role="presentation" class="dropdown-divider"></li>
