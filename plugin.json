@@ -1,11 +1,19 @@
 {
-    "id": "nodebb-plugin-admin-view-chats",
-    "name": "Admin View User Chats",
-    "description": "Link to user chats page",
+    "id": "nodebb-plugin-super-admin-chats",
+    "name": "Super Admin Chat Control",
+    "description": "Full admin control over chats + Profile Links",
+    "url": "https://github.com/yourname/nodebb-plugin-super-admin-chats",
     "library": "./library.js",
     "scripts": [ "client.js" ],
     "hooks": [
         { "hook": "filter:user.accountMenu", "method": "addProfileLink" },
+        { "hook": "filter:messaging.isRoomOwner", "method": "isRoomOwner" },
+        { "hook": "filter:messaging.isUserInRoom", "method": "isUserInRoom" },
+        { "hook": "filter:messaging.canReply", "method": "canReply" },
+        { "hook": "filter:messaging.canGetMessages", "method": "canGetMessages" },
+        { "hook": "filter:messaging.canGetRecentChats", "method": "canGetRecentChats" },
+        { "hook": "filter:messaging.canGetPublicChats", "method": "canGetPublicChats" },
+        { "hook": "filter:messaging.loadRoom", "method": "onLoadRoom" },
         { "hook": "static:app.load", "method": "init" }
     ]
 }

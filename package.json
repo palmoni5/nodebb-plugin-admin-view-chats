@@ -1,9 +1,11 @@
 {
-  "name": "nodebb-plugin-admin-view-chats",
-  "version": "1.0.1",
-  "description": "Admin button to view user chats json",
+  "name": "nodebb-plugin-super-admin-chats",
+  "version": "1.0.0",
+  "description": "Combined plugin: Admin link to user chats + God Mode (Ghost, History, Full Control).",
   "main": "library.js",
-  "keywords": ["nodebb", "plugin", "admin", "chats"],
+  "dependencies": {
+    "lodash": "^4.17.0"
+  },
   "nbbpm": {
     "compatibility": "^3.0.0 || ^4.0.0"
   }
