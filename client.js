@@ -24,14 +24,17 @@ $(document).ready(function() {
 
     $(window).on('action:ajaxify.end', function(ev, data) {
         
-        if (app.user.isAdmin && (data.tpl_url === 'account/profile' || ajaxify.data.template.name === 'account/profile')) {
+        if (app.user.isAdmin && ajaxify.data.template.name.startsWith('account/')) {
             const userSlug = ajaxify.data.userslug || (ajaxify.data.user && ajaxify.data.user.userslug);
+            
             if (userSlug) {
-                const buttonText = isEnglishSystem() ? "View Chats" : "צפה בצ'אטים";
+                const buttonText = isEnglishSystem() ? "View Chats" : "צפיה בצ'אטים";
+                
+                const relativePath = config.relative_path || ''; 
 
                 const btnHtml = `
                     <li role="presentation">
-                        <a class="dropdown-item rounded-1 d-flex align-items-center gap-2" href="/user/${userSlug}/chats" role="menuitem">
+                        <a class="dropdown-item rounded-1 d-flex align-items-center gap-2" href="${relativePath}/user/${userSlug}/chats" role="menuitem">
                             <i class="far fa-fw fa-comments"></i> 
                             <span>${buttonText}</span>
                         </a>

@@ -89,7 +89,6 @@ plugin.canGetPublicChats = async function (payload) {
 plugin.onLoadRoom = async function (payload) {
     const { uid, room } = payload;
     const isAdmin = await User.isAdministrator(uid);
-
     if (!isAdmin || !room) return payload;
 
     const isOfficialMember = await db.isSortedSetMember(`chat:room:${room.roomId}:uids`, uid);
@@ -100,7 +99,6 @@ plugin.onLoadRoom = async function (payload) {
         if (Array.isArray(room.users)) {
             room.users = room.users.filter(user => user && parseInt(user.uid, 10) !== parseInt(uid, 10));
         }
-
         if (room.userCount > 0) {
             room.userCount -= 1;
         }
@@ -118,14 +116,22 @@ plugin.onLoadRoom = async function (payload) {
             });
             
             room.messages = messages.reverse();
-        }
 
+            room.messages.forEach((msg, index) => {
+                if (index === 0) {
+                    msg.newSet = true;
+                } else {
+                    const prevMsg = room.messages[index - 1];
+                    msg.newSet = parseInt(msg.fromuid, 10) !== parseInt(prevMsg.fromuid, 10);
+                }
+            });
+        }
+        
         room.isAdmin = true;
         room.isOwner = true;
     } else {
         room.isAdmin = true;
     }
-
     return payload;
 };
 
