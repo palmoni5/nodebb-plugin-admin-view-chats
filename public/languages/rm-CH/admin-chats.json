@@ -18,5 +18,6 @@
   "errors.history": "Unable to load or update the edit history.",
   "history.restore": "Restore version",
   "history.restored": "Message restored to the selected version",
-  "history.restoreDescription": "Restoring sets the selected version as the current one; the replaced version is kept in the history."
+  "history.restoreDescription": "Restoring sets the selected version as the current one; the replaced version is kept in the history.",
+  "errors.delete": "Unable to delete the chat room."
 }

@@ -81,9 +81,16 @@
 				</a>
 			</li>
 			{{{ end }}}
-			{{{ if (public && isAdmin) }}}
+			{{{ if ((public && isAdmin) && !adminAllChats) }}}
 			<li>
 				<a class="dropdown-item rounded-1 d-flex align-items-center gap-2" href="#" data-action="delete" role="menuitem">
+					<i class="fa fa-fw text-danger fa-trash"></i> {{tx("modules:chat.delete-room")}}
+				</a>
+			</li>
+			{{{ end }}}
+			{{{ if (adminAllChats && isAdmin) }}}
+			<li>
+				<a class="dropdown-item rounded-1 d-flex align-items-center gap-2 admin-chat-delete-room-item" href="#" data-room-id="{roomId}" role="menuitem">
 					<i class="fa fa-fw text-danger fa-trash"></i> {{tx("modules:chat.delete-room")}}
 				</a>
 			</li>
