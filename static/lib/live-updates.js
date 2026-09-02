@@ -25,18 +25,4 @@ $(document).ready(function () {
             refreshIfOpen(data && data.roomId);
         });
     }
-
-    // Core toggles the `deleted` class on a message when it's deleted/restored,
-    // but doesn't itself swap which of the delete/restore actions is visible.
-    $(document).on('click', '[data-action="delete"], [data-action="restore"]', function () {
-        const $message = $(this).closest('[component="chat/message"]');
-        if (!$message.length) {
-            return;
-        }
-        setTimeout(function () {
-            const isDeleted = $message.hasClass('deleted');
-            $message.find('[data-action="delete"]').toggleClass('hidden', isDeleted).toggle(!isDeleted);
-            $message.find('[data-action="restore"]').toggleClass('hidden', !isDeleted).toggle(isDeleted);
-        }, 50);
-    });
 });
